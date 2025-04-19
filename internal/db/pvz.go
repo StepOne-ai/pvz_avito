@@ -3,8 +3,12 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"time"
+
+	"github.com/StepOne-ai/pvz_avito/internal/models"
 )
 
+// CreatePVZ inserts a new PVZ into the database.
 func CreatePVZ(id, city, registrationDate string) error {
 	query := `
     INSERT INTO pvzs (id, registration_date, city)
@@ -16,9 +20,13 @@ func CreatePVZ(id, city, registrationDate string) error {
 	return nil
 }
 
-func GetPVZByID(id string) (map[string]string, error) {
+// GetPVZByID retrieves a PVZ by its ID and returns it as a models.PVZ object.
+func GetPVZByID(id string) (*models.PVZ, error) {
 	query := `
-    SELECT id, registration_date, city FROM pvzs WHERE id = ?`
+    SELECT id, registration_date, city
+    FROM pvzs
+    WHERE id = ?`
+
 	row := DB.QueryRow(query, id)
 
 	var pvzID, registrationDate, city string
@@ -29,21 +37,29 @@ func GetPVZByID(id string) (map[string]string, error) {
 		return nil, fmt.Errorf("failed to get PVZ: %v", err)
 	}
 
-	return map[string]string{
-		"id":                pvzID,
-		"registration_date": registrationDate,
-		"city":              city,
+	// Parse the registration date
+	parsedDate, err := time.Parse(time.RFC3339, registrationDate)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse registration date: %v", err)
+	}
+
+	return &models.PVZ{
+		ID:               pvzID,
+		RegistrationDate: parsedDate,
+		City:             city,
 	}, nil
 }
 
-func GetPVZsFiltered(startDate, endDate string, page, limit int) ([]map[string]interface{}, error) {
-	// Base query
+// GetPVZsFiltered retrieves a filtered and paginated list of PVZs.
+func GetPVZsFiltered(startDate, endDate string, page, limit int) ([]models.PVZ, error) {
 	query := `
-    SELECT id, registration_date, city FROM pvzs`
+    SELECT id, registration_date, city
+    FROM pvzs`
 
 	var conditions []string
-	var args []any
+	var args []interface{}
 
+	// Add filtering conditions
 	if startDate != "" {
 		conditions = append(conditions, "registration_date >= ?")
 		args = append(args, startDate)
@@ -53,21 +69,24 @@ func GetPVZsFiltered(startDate, endDate string, page, limit int) ([]map[string]i
 		args = append(args, endDate)
 	}
 
+	// Join conditions with AND
 	if len(conditions) > 0 {
 		query += " WHERE " + joinConditions(conditions)
 	}
 
+	// Add pagination
 	offset := (page - 1) * limit
 	query += " ORDER BY registration_date DESC LIMIT ? OFFSET ?"
 	args = append(args, limit, offset)
 
+	// Execute the query
 	rows, err := DB.Query(query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get PVZs: %v", err)
 	}
 	defer rows.Close()
 
-	var pvzs []map[string]any
+	var pvzs []models.PVZ
 	for rows.Next() {
 		var id, registrationDate, city string
 		err := rows.Scan(&id, &registrationDate, &city)
@@ -75,21 +94,28 @@ func GetPVZsFiltered(startDate, endDate string, page, limit int) ([]map[string]i
 			return nil, fmt.Errorf("failed to scan PVZ: %v", err)
 		}
 
-		pvzs = append(pvzs, map[string]any{
-			"id":                id,
-			"registration_date": registrationDate,
-			"city":              city,
-			"receptions":        []any{},
+		// Parse the registration date
+		parsedDate, err := time.Parse(time.RFC3339, registrationDate)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse registration date: %v", err)
+		}
+
+		pvzs = append(pvzs, models.PVZ{
+			ID:               id,
+			RegistrationDate: parsedDate,
+			City:             city,
 		})
 	}
 
 	return pvzs, nil
 }
 
+// Helper function to join conditions with a separator
 func joinConditions(conditions []string) string {
 	return "(" + joinStrings(conditions, " AND ") + ")"
 }
 
+// Helper function to join strings with a separator
 func joinStrings(items []string, sep string) string {
 	if len(items) == 0 {
 		return ""
