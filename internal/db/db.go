@@ -16,6 +16,11 @@ func InitDB(dbPath string) error {
 		return err
 	}
 
+	err = DB.Ping()
+	if err != nil {
+		log.Fatalf("Failed to ping database: %v", err)
+	}
+
 	createTables()
 	return nil
 }
