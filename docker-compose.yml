@@ -1,0 +1,15 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - JWT_SECRET=some_super_secret_key
+      - DB_PATH=/app/data/database.db
+    volumes:
+      - ./data:/app/data
+    restart: always
