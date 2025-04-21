@@ -1,0 +1,17 @@
+http_requests_total{endpoint="/pvz",method="GET",status="OK"} 209538
+# HELP http_response_time_seconds Histogram of response times for HTTP requests
+# TYPE http_response_time_seconds histogram
+http_response_time_seconds_bucket{endpoint="/pvz",method="GET",le="0.005"} 163287
+http_response_time_seconds_bucket{endpoint="/pvz",method="GET",le="0.01"} 181682
+http_response_time_seconds_bucket{endpoint="/pvz",method="GET",le="0.025"} 199312
+http_response_time_seconds_bucket{endpoint="/pvz",method="GET",le="0.05"} 205029
+http_response_time_seconds_bucket{endpoint="/pvz",method="GET",le="0.1"} 208464
+http_response_time_seconds_bucket{endpoint="/pvz",method="GET",le="0.25"} 209521
+http_response_time_seconds_bucket{endpoint="/pvz",method="GET",le="0.5"} 209538
+http_response_time_seconds_bucket{endpoint="/pvz",method="GET",le="1"} 209538
+http_response_time_seconds_bucket{endpoint="/pvz",method="GET",le="2.5"} 209538
+http_response_time_seconds_bucket{endpoint="/pvz",method="GET",le="5"} 209538
+http_response_time_seconds_bucket{endpoint="/pvz",method="GET",le="10"} 209538
+http_response_time_seconds_bucket{endpoint="/pvz",method="GET",le="+Inf"} 209538
+http_response_time_seconds_sum{endpoint="/pvz",method="GET"} 1154.8338926369972
+http_response_time_seconds_count{endpoint="/pvz",method="GET"} 209538
